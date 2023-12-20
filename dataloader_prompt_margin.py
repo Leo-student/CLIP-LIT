@@ -11,7 +11,8 @@ from PIL import Image
 import glob
 import random
 import cv2
-import clip
+from CLIP  import clip  
+# from CLIP import clip 
 
 def transform_matrix_offset_center(matrix, x, y):
     """Return transform matrix offset center.

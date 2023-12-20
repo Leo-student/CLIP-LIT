@@ -22,7 +22,7 @@ import clip_score
 import random
 from collections import OrderedDict
 from torch.utils.tensorboard import SummaryWriter
-import clip
+from CLIP import clip 
 
 import pyiqa
 import shutil
@@ -200,11 +200,12 @@ def train(config):
     reinit_flag=0
     
     #Start training!
-    for epoch in range(config.num_epochs):
-        if total_iteration<config.num_clip_pretrained_iters:
+    for epoch in range(config.num_epochs): 
+        # set total iteration 
+        if total_iteration < config.num_clip_pretrained_iters:
             train_thre=0
             total_thre=config.num_clip_pretrained_iters
-        elif total_iteration<config.num_reconstruction_iters+config.num_clip_pretrained_iters:
+        elif total_iteration < config.num_reconstruction_iters + config.num_clip_pretrained_iters:
             train_thre=config.num_reconstruction_iters
             total_thre=config.num_reconstruction_iters
         elif cur_iteration==0:
@@ -212,6 +213,7 @@ def train(config):
             total_thre=3100#2800#3100#1200#500
             print("cur using prompt from: iteration ", best_prompt_iter)
             print("cur using best model from: iteration ", best_model_iter)
+            
         if cur_iteration+1<=train_thre: 
             if cur_iteration==0:
                 learn_prompt=best_prompt
@@ -227,13 +229,13 @@ def train(config):
         
                 img_lowlight ,img_lowlight_path=item
                 
-                img_lowlight = img_lowlight.cuda()
+                img_lowlight = img_lowlight.cuda()                                # unsupervised
 
-                light_map  = U_net(img_lowlight)
-                final=torch.clamp(((img_lowlight) /(light_map+0.000000001)),0,1)
+                light_map  = U_net(img_lowlight)                                  # input and output 
+                final=torch.clamp(((img_lowlight) /(light_map+0.000000001)),0,1)  #final = Ib  / Ii
                
-                cliploss=16*20*L_clip(final, text_features)
-                clip_MSEloss = 25*L_clip_MSE(final, img_lowlight,[1.0,1.0,1.0,1.0,0.5])
+                cliploss=16*20*L_clip(final, text_features)                             #clip loss iamge and texture
+                clip_MSEloss = 25*L_clip_MSE(final, img_lowlight,[1.0,1.0,1.0,1.0,0.5]) #identity  image and image loss
 
                 if(total_iteration>=config.num_reconstruction_iters+config.num_clip_pretrained_iters):
                     # print("training model with cliploss and reconstruction loss")
